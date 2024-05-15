@@ -1,5 +1,5 @@
 import streamlit as st
-from pdk_layers import (deck_fires, deck_wri,
+from pydeck_layers import (deck_fires, deck_wri,
                         deck_tavg, deck_tmax,
                         deck_wind, deck_prec,
                         deck_vp, chart_data)
