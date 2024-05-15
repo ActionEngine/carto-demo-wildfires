@@ -7,7 +7,8 @@ from pydeck.types import Image
 
 # Carto authentication and vars
 carto_auth = CartoAuth.from_oauth(cache_filepath='./token_oauth.json')
-map_style = pdk.map_styles.LIGHT
+# map_style = pdk.map_styles.LIGHT
+map_style = "https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/carto_road_style.json"
 view_state = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=9, pitch=0, bearing=0)
 
 # Fires
