@@ -1,20 +1,21 @@
 import pydeck as pdk
 from pydeck_carto.styles import color_bins
 from carto_auth import CartoAuth
-from pydeck_carto import get_layer_credentials
+from pydeck_carto import register_carto_layer, get_layer_credentials
 from pydeck_carto.layer import MapType, GeoColumnType
 from pydeck.types import Image
+from snowflake.snowpark.session import Session
+
 
 # Carto authentication and vars
 carto_auth = CartoAuth.from_oauth(cache_filepath='./token_oauth.json')
-# map_style = pdk.map_styles.LIGHT
-map_style = "https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/carto_road_style.json"
-view_state = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=9, pitch=0, bearing=0)
+map_style = pdk.map_styles.CARTO_ROAD
+view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=9, pitch=0, bearing=0)
 
 # Fires
 fires_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT GEOM, ROUND(GIS_ACRES, 2) AS GIS_ACRES, FIRE_NAME FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020 WHERE YEAR=2020""",
+    data="""SELECT GEOM, ROUND(GIS_ACRES, 2) AS GIS_ACRES, FIRE_NAME, YEAR FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -25,21 +26,42 @@ fires_layer = pdk.Layer(
     filled=True,
     extruded=False,
     hexagonAggregator=False,
-    # get_fill_color=color_bins("TAVG_AUG", [22, 23, 24, 25], "Peach"),
-    get_fill_color=[255, 20, 0, 150],
-    get_line_color=[102, 51, 0, 100],
+    get_fill_color=[255, 20, 0, 100],
+    get_line_color=[102, 51, 0, 150],
     line_width_min_pixels=2,
 )
 
 tooltip_fires = {
     "html":
-        "<b>Fire Name:</b> <br>{FIRE_NAME}<br><b>Fire Area (Acres):</b> <br>{GIS_ACRES}",
+        "<b>Fire Name:</b> <br>{FIRE_NAME}<br><b>Fire Area (Acres):</b> <br>{GIS_ACRES}<br><b>Year:</b> <br>{YEAR}",
     "style":
         {"color": "white"}
 }
 
 view_state_california = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=5, pitch=0, bearing=0)
 deck_fires = pdk.Deck(fires_layer, map_style=map_style, initial_view_state=view_state_california, tooltip=tooltip_fires)
+
+# Fires histogram
+# Snowflake authentication
+SF_ACCOUNT = 'sxa81489.us-east-1'
+SF_USER = 'PARTNER_ACTIONENGINE'
+SF_PASSWORD = 'Yesterday123!'
+
+connection_parameters = {
+      "account": SF_ACCOUNT,
+      "user": SF_USER,
+      "password": SF_PASSWORD,
+      "database": "PARTNER_ACTION_ENGINE_DB",
+      "schema": "WILDFIRE",
+      "warehouse": "PARTNER_ACTION_ENGINE_WH"
+    }
+
+session = Session.builder.configs(connection_parameters).create()
+q = 'SELECT YEAR_, SUM(GIS_ACRES) AS GIS_ACRES FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020 GROUP BY YEAR_ ORDER BY YEAR_'
+
+chart_data = session.sql(q).to_pandas()
+
+
 
 # WRI
 wri_layer = pdk.Layer(
@@ -55,12 +77,14 @@ wri_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("WRI_CODE", [4, 5], "BurgYl"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("""AVG(WRI_CODE) as WRI_CODE, 
                                      MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
                                      MODE(EXPLANATION) as EXPLANATION"""),
     aggregation_res_level=8,
+    min_zoom=6
 )
 
 tooltip_wri = {
@@ -86,7 +110,8 @@ tavg_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("TAVG_AUG", [22, 23, 24, 25], "Peach"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("AVG(TAVG_AUG) as TAVG_AUG"),
     aggregation_res_level=8,
@@ -112,7 +137,8 @@ tmax_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("TMAX_AUG", [29, 30, 31, 32], "Peach"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("AVG(TMAX_AUG) as TMAX_AUG"),
     aggregation_res_level=8,
@@ -142,7 +168,8 @@ wind_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("WIND_AUG", [2, 3, 4], "Mint"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("AVG(WIND_AUG) as WIND_AUG"),
     aggregation_res_level=8,
@@ -170,7 +197,8 @@ prec_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("PREC_AUG", [3, 4, 5, 6], "BluYl"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("AVG(PREC_AUG) as PREC_AUG"),
     aggregation_res_level=8,
@@ -198,7 +226,8 @@ vp_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("VAPR_AUG", [0.5, 1, 1.5], "BluYl"),
-    get_line_color=[103, 8, 8, 100],
+    opacity=0.1,
+    get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("AVG(VAPR_AUG) as VAPR_AUG"),
     aggregation_res_level=8,

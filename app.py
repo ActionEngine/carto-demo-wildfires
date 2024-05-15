@@ -1,5 +1,9 @@
 import streamlit as st
-from pydeck_layers import deck_fires, deck_wri, deck_tavg, deck_tmax, deck_wind, deck_prec, deck_vp
+from pdk_layers import (deck_fires, deck_wri,
+                        deck_tavg, deck_tmax,
+                        deck_wind, deck_prec,
+                        deck_vp, chart_data)
+
 
 st.set_page_config(page_title="Using Snowflake Cortex to explain Fire Risk Index")
 st.header("Using Snowflake Cortex to explain Fire Risk Index", divider="rainbow")
@@ -54,9 +58,13 @@ forest industry and is a subject of study among insurance analysts, environmenta
 """
 st.markdown(wf_stats)
 
-st.markdown("##### California Wildfires")
+st.markdown("##### California Wildfires Map")
 st.pydeck_chart(deck_fires)
-st.caption("California Wildfires")
+st.caption("Source")
+
+st.markdown("##### Total Acres Burned by Year")
+st.bar_chart(chart_data, x="YEAR_", y="GIS_ACRES")
+st.caption("Source")
 
 wf_understanding = '''
 Understanding wildfires better and evaluating wildfire risk can help save people, property and nature by developing 
@@ -158,4 +166,7 @@ you can easily show data accessed through Carto on a Snowflake-Carto connection 
 easy interactivity.
 """
 st.markdown(integration)
-st.image('https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/logos.png')
+st.image('https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/logos.svg')
+st.divider()
+st.markdown("Brought to you by")
+st.image("https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/AE.svg", width=200)
