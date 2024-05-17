@@ -63,7 +63,7 @@ st.pydeck_chart(deck_fires)
 st.caption("Source")
 
 st.markdown("##### Total Acres Burned by Year")
-st.bar_chart(chart_data, x="YEAR_", y="GIS_ACRES")
+st.bar_chart(chart_data, x="YEAR", y="GIS_ACRES")
 st.caption("Source")
 
 wf_understanding = '''
@@ -166,7 +166,7 @@ you can easily show data accessed through Carto on a Snowflake-Carto connection 
 easy interactivity.
 """
 st.markdown(integration)
-st.image('https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/logos.svg')
+st.image('https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/Logos1.svg')
 st.divider()
 st.markdown("Brought to you by")
-st.image("https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/AE.svg", width=200)
+st.image("https://actionengine-public.s3.us-east-2.amazonaws.com/carto_demo/AE.svg", width=250)
