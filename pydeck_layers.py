@@ -8,7 +8,12 @@ from snowflake.snowpark.session import Session
 
 
 # Carto authentication and vars
-carto_auth = CartoAuth.from_oauth(cache_filepath='./token_oauth.json')
+carto_auth = CartoAuth(
+                       mode="m2m",
+                       api_base_url="https://gcp-us-east1.api.carto.com",
+                       client_id="xJfESrYieR1aeKzmzzsuiTjNIN2x71sh",
+                       client_secret="H17Lcc2q3ypFeyMps5UgVE8b-I2vasDXnODdA8GGnlGJy6ArGFAEsfhDctBIMtIk",
+                       )
 map_style = pdk.map_styles.CARTO_ROAD
 view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=9, pitch=0, bearing=0)
 
