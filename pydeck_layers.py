@@ -6,15 +6,6 @@ from pydeck_carto.layer import MapType, GeoColumnType
 from pydeck.types import Image
 from snowflake.snowpark.session import Session
 
-
-# Carto authentication and vars
-# carto_auth = CartoAuth.from_oauth(cache_filepath='./token_oauth.json')
-# carto_auth = CartoAuth(
-#                        api_base_url="https://gcp-us-east1.api.carto.com",
-#                        mode="oauth",
-#                        access_token="eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdjkxemI4MHQiLCJqdGkiOiJiY2U1ZmVlNyJ9.5f1NB8nVOlZUuEY03UgLBCEGioDvyFRZJ7wwz65Qmo4",
-#                        )
-
 carto_auth = CartoAuth(
                        mode="m2m",
                        api_base_url="https://gcp-us-east1.api.carto.com",
@@ -22,7 +13,7 @@ carto_auth = CartoAuth(
                        client_secret="H17Lcc2q3ypFeyMps5UgVE8b-I2vasDXnODdA8GGnlGJy6ArGFAEsfhDctBIMtIk",
                        )
 map_style = pdk.map_styles.CARTO_ROAD
-view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=9, pitch=0, bearing=0)
+view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=8, pitch=0, bearing=0)
 
 # Fires
 fires_layer = pdk.Layer(
@@ -76,7 +67,7 @@ chart_data = session.sql(q).to_pandas()
 # WRI
 wri_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, CAST(SUBSTRING(WRI_KMEANS_5_CAT_JOINED, 1, 1) as int) AS WRI_CODE, WRI_KMEANS_5_CAT_JOINED, EXPLANATION FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.PIECE_1000_EXPLANATION_AUGUST""",
+    data="""SELECT H3, CAST(SUBSTRING(REPLACE(WRI_KMEANS_5_CAT_JOINED, 'No risk', '0 No risk'), 1, 1) as int) AS WRI_CODE, WRI_KMEANS_5_CAT_JOINED, EXPLANATION FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -86,15 +77,15 @@ wri_layer = pdk.Layer(
     filled=True,
     extruded=False,
     hexagonAggregator=False,
-    get_fill_color=color_bins("WRI_CODE", [4, 5], "BurgYl"),
+    get_fill_color=color_bins("WRI_CODE", [0, 1, 2, 3, 4, 5], "RedOr"),
     opacity=0.1,
     get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
-    aggregation_exp=pdk.types.String("""AVG(WRI_CODE) as WRI_CODE, 
+    aggregation_exp=pdk.types.String("""ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
                                      MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
                                      MODE(EXPLANATION) as EXPLANATION"""),
-    aggregation_res_level=8,
-    min_zoom=6
+    # aggregation_res_level=8,
+    # min_zoom=6
 )
 
 tooltip_wri = {
@@ -107,9 +98,10 @@ tooltip_wri = {
 deck_wri = pdk.Deck(wri_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_wri)
 
 # Temperature
+
 tavg_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, ROUND(TAVG_AUG, 2) AS TAVG_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.PIECE_1000_EXPLANATION_AUGUST""",
+    data="""SELECT H3, ROUND(TAVG_AUG, 2) AS TAVG_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -123,7 +115,8 @@ tavg_layer = pdk.Layer(
     opacity=0.1,
     get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
-    aggregation_exp=pdk.types.String("AVG(TAVG_AUG) as TAVG_AUG"),
+    aggregation_exp=pdk.types.String("ROUND(AVG(TAVG_AUG), 2) as TAVG_AUG"),
+    # aggregation_res_level=8,
 )
 
 tooltip_tavg = {
@@ -135,7 +128,7 @@ tooltip_tavg = {
 
 tmax_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, ROUND(TMAX_AUG, 2) AS TMAX_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.PIECE_1000_EXPLANATION_AUGUST""",
+    data="""SELECT H3, ROUND(TMAX_AUG, 2) AS TMAX_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TMAX_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -150,7 +143,7 @@ tmax_layer = pdk.Layer(
     get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
     aggregation_exp=pdk.types.String("ROUND(AVG(TMAX_AUG), 2) as TMAX_AUG"),
-    aggregation_res_level=8,
+    # aggregation_res_level=8,
 )
 
 tooltip_tmax = {
@@ -166,7 +159,7 @@ deck_tmax = pdk.Deck(tmax_layer, map_style=map_style, initial_view_state=view_st
 # Wind
 wind_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, ROUND(WIND_AUG, 2) AS WIND_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.PIECE_1000_EXPLANATION_AUGUST""",
+    data="""SELECT H3, ROUND(WIND_AUG, 2) AS WIND_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE WIND_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -180,8 +173,8 @@ wind_layer = pdk.Layer(
     opacity=0.1,
     get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
-    aggregation_exp=pdk.types.String("AVG(WIND_AUG) as WIND_AUG"),
-    aggregation_res_level=8,
+    aggregation_exp=pdk.types.String("ROUND(AVG(WIND_AUG), 2) as WIND_AUG"),
+    # aggregation_res_level=8,
 )
 
 tooltip_w = {
@@ -195,7 +188,7 @@ deck_wind = pdk.Deck(wind_layer, map_style=map_style, initial_view_state=view_st
 # Precipitation
 prec_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, ROUND(PREC_AUG, 2) AS PREC_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WORKFLOW_1_JOIN_WRI_WITH_SPATIAL""",
+    data="""SELECT H3, ROUND(PREC_AUG, 2) AS PREC_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE PREC_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -224,7 +217,7 @@ deck_prec = pdk.Deck(prec_layer, map_style=map_style, initial_view_state=view_st
 # Vapour Pressure
 vp_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT H3, ROUND(VAPR_AUG, 2) AS VAPR_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.PIECE_1000_EXPLANATION_AUGUST""",
+    data="""SELECT H3, ROUND(VAPR_AUG, 2) AS VAPR_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE VAPR_AUG IS NOT NULL""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -238,8 +231,8 @@ vp_layer = pdk.Layer(
     opacity=0.1,
     get_line_color=[255, 255, 255],
     line_width_min_pixels=2,
-    aggregation_exp=pdk.types.String("AVG(VAPR_AUG) as VAPR_AUG"),
-    aggregation_res_level=8,
+    aggregation_exp=pdk.types.String("ROUND(AVG(VAPR_AUG), 2) as VAPR_AUG"),
+    # aggregation_res_level=8,
 )
 
 tooltip_vp = {
@@ -249,3 +242,4 @@ tooltip_vp = {
         {"color": "white"}
 }
 deck_vp = pdk.Deck(vp_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_vp)
+
