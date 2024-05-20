@@ -1,18 +1,21 @@
 import pydeck as pdk
 from pydeck_carto.styles import color_bins
 from carto_auth import CartoAuth
-from pydeck_carto import register_carto_layer, get_layer_credentials
+from pydeck_carto import get_layer_credentials
 from pydeck_carto.layer import MapType, GeoColumnType
 from pydeck.types import Image
 from snowflake.snowpark.session import Session
+import streamlit as st
 
-# carto_auth = CartoAuth(
-#                        mode="m2m",
-#                        api_base_url="https://gcp-us-east1.api.carto.com",
-#                        client_id="xJfESrYieR1aeKzmzzsuiTjNIN2x71sh",
-#                        client_secret="H17Lcc2q3ypFeyMps5UgVE8b-I2vasDXnODdA8GGnlGJy6ArGFAEsfhDctBIMtIk",
-#                        )
-carto_auth = CartoAuth.from_oauth(cache_filepath='./token_oauth.json')
+carto_auth = CartoAuth(
+    mode="oauth",
+    api_base_url="https://gcp-us-east1.api.carto.com",
+    access_token=st.secrets["token"],
+    #access_token="YOUR_TOKEN",
+    expiration=1746906545,
+    open_browser=False
+)
+
 map_style = pdk.map_styles.CARTO_ROAD
 view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=8, pitch=0, bearing=0)
 
@@ -52,13 +55,13 @@ SF_USER = 'PARTNER_ACTIONENGINE'
 SF_PASSWORD = 'Yesterday123!'
 
 connection_parameters = {
-      "account": SF_ACCOUNT,
-      "user": SF_USER,
-      "password": SF_PASSWORD,
-      "database": "PARTNER_ACTION_ENGINE_DB",
-      "schema": "WILDFIRE",
-      "warehouse": "PARTNER_ACTION_ENGINE_WH"
-    }
+    "account": SF_ACCOUNT,
+    "user": SF_USER,
+    "password": SF_PASSWORD,
+    "database": "PARTNER_ACTION_ENGINE_DB",
+    "schema": "WILDFIRE",
+    "warehouse": "PARTNER_ACTION_ENGINE_WH"
+}
 
 session = Session.builder.configs(connection_parameters).create()
 q = 'SELECT YEAR_ AS YEAR, SUM(GIS_ACRES) AS GIS_ACRES FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020 GROUP BY YEAR_ ORDER BY YEAR_'
@@ -243,4 +246,3 @@ tooltip_vp = {
         {"color": "white"}
 }
 deck_vp = pdk.Deck(vp_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_vp)
-
