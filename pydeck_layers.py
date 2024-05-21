@@ -10,9 +10,13 @@ import streamlit as st
 carto_auth = CartoAuth(
     mode="oauth",
     api_base_url="https://gcp-us-east1.api.carto.com",
-    access_token=st.secrets["token"],
-    #access_token="YOUR_TOKEN",
-    expiration=1746906545,
+    # access_token=st.secrets["token"],
+    # access_token="eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdjkxemI4MHQiLCJqdGkiOiJiY2U1ZmVlNyJ9.5f1NB8nVOlZUuEY03UgLBCEGioDvyFRZJ7wwz65Qmo4",
+    # expiration=1746906545,
+    # client_id="GysziLQQHQAXdFrwHgNiisih5FVvvgUs",
+    # client_secret="rW66VTXDnRLyFsfKuwGF6UTnoz25umByCc57DNYqIhyBGdTb4Yx1seQ_XchuB8hr",
+    client_id=st.secrets["client_id"],
+    client_secret=st.secrets["client_secret"],
     open_browser=False
 )
 
