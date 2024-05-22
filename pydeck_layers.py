@@ -10,13 +10,27 @@ import streamlit as st
 carto_auth = CartoAuth(
     mode="oauth",
     api_base_url="https://gcp-us-east1.api.carto.com",
-    access_token=st.secrets["token"],
+    # access_token=st.secrets["token"],
+    access_token="eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdjkxemI4MHQiLCJqdGkiOiJiY2U1ZmVlNyJ9.5f1NB8nVOlZUuEY03UgLBCEGioDvyFRZJ7wwz65Qmo4",
     expiration=4155310800,
     open_browser=False
 )
 
 map_style = pdk.map_styles.CARTO_ROAD
 view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=8, pitch=0, bearing=0)
+view_state_california = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=5, pitch=0, bearing=0)
+
+tooltip_style = {
+                 "color": "rgba(255, 255, 255, 1)", #"white",
+                 "backgroundColor": "rgba(0, 0, 0, 1)", #1A212D", #"#297fb8",
+                 "border-radius": "4px",
+                 "padding": "2em",
+                 "opacity": "1",
+                 "position": "relative",
+                 "z-index": "999999",
+                }
+tooltip_wri_style = tooltip_style
+tooltip_wri_style["width"] = "450px"
 
 # Fires
 fires_layer = pdk.Layer(
@@ -39,12 +53,10 @@ fires_layer = pdk.Layer(
 
 tooltip_fires = {
     "html":
-        "<b>Fire Name:</b> <br>{FIRE_NAME}<br><b>Fire Area (Acres):</b> <br>{GIS_ACRES}<br><b>Year:</b> <br>{YEAR}",
+        "Fire Name: <br><b>{FIRE_NAME}</b><br>Fire Area (Acres): <br><b>{GIS_ACRES}</b><br>Year: <br><b>{YEAR}</b>",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
-
-view_state_california = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=5, pitch=0, bearing=0)
 deck_fires = pdk.Deck(fires_layer, map_style=map_style, initial_view_state=view_state_california, tooltip=tooltip_fires)
 
 # Fires histogram
@@ -75,15 +87,16 @@ wri_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
     extruded=False,
     hexagonAggregator=False,
-    get_fill_color=color_bins("WRI_CODE", [0, 1, 2, 3, 4, 5], "RedOr"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    get_fill_color=color_bins("WRI_CODE", [1, 2, 3, 4, 5], "OrYel"),
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("""ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
                                      MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
                                      MODE(EXPLANATION) as EXPLANATION"""),
@@ -96,7 +109,7 @@ tooltip_wri = {
         """<b>Wildfire Risk Index:</b> <br>{WRI_KMEANS_5_CAT_JOINED}<br>
         <b>Explanation:</b> <br>{EXPLANATION}""",
     "style":
-        {"color": "white"}
+        tooltip_wri_style
 }
 deck_wri = pdk.Deck(wri_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_wri)
 
@@ -115,18 +128,18 @@ tavg_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("TAVG_AUG", [22, 23, 24, 25], "Peach"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(TAVG_AUG), 2) as TAVG_AUG"),
     # aggregation_res_level=8,
 )
 
 tooltip_tavg = {
     "html":
-        "<b>Average August Temperature (Celsius):</b> <br>{TAVG_AUG}",
+        "<b>Average August Temperature (Celsius):</b> <br>{TAVG_AUG} <br> Understanding wildfires better and evaluating wildfire risk can help save people, property and nature by developing strategies aimed at wildfire prevention and mitigation. Not only that, but it would also be invaluable to business owners and especially in insurance industry by allowing insurance policies and pricing to backed up by real wildfire data analytics.",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
 
 tmax_layer = pdk.Layer(
@@ -142,9 +155,9 @@ tmax_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("TMAX_AUG", [29, 30, 31, 32], "Peach"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(TMAX_AUG), 2) as TMAX_AUG"),
     # aggregation_res_level=8,
 )
@@ -153,7 +166,7 @@ tooltip_tmax = {
     "html":
         "<b>Maximum August Temperature (Celsius):</b> <br>{TMAX_AUG}",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
 
 deck_tavg = pdk.Deck(tavg_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_tavg)
@@ -173,9 +186,9 @@ wind_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("WIND_AUG", [2, 3, 4], "Mint"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(WIND_AUG), 2) as WIND_AUG"),
     # aggregation_res_level=8,
 )
@@ -184,7 +197,7 @@ tooltip_w = {
     "html":
         "<b>Average August Wind Speed (m/s):</b> <br>{WIND_AUG}",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
 deck_wind = pdk.Deck(wind_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_w)
 
@@ -202,9 +215,9 @@ prec_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("PREC_AUG", [3, 4, 5, 6], "BluYl"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(PREC_AUG), 2) as PREC_AUG"),
     # aggregation_res_level=8,
 )
@@ -213,7 +226,7 @@ tooltip_p = {
     "html":
         "<b>Average August Precipitation (inches):</b> <br>{PREC_AUG}",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
 deck_prec = pdk.Deck(prec_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_p)
 
@@ -231,9 +244,9 @@ vp_layer = pdk.Layer(
     extruded=False,
     hexagonAggregator=False,
     get_fill_color=color_bins("VAPR_AUG", [0.5, 1, 1.5], "BluYl"),
-    opacity=0.1,
-    get_line_color=[255, 255, 255],
-    line_width_min_pixels=2,
+    opacity=0.2,
+    get_line_color=[255, 255, 255, 150],
+    line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(VAPR_AUG), 2) as VAPR_AUG"),
     # aggregation_res_level=8,
 )
@@ -242,6 +255,6 @@ tooltip_vp = {
     "html":
         "<b>Average August Vapour Pressure (Pa):</b> <br>{VAPR_AUG}",
     "style":
-        {"color": "white"}
+        tooltip_style
 }
 deck_vp = pdk.Deck(vp_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_vp)
