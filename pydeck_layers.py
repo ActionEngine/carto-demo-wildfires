@@ -10,8 +10,7 @@ import streamlit as st
 carto_auth = CartoAuth(
     mode="oauth",
     api_base_url="https://gcp-us-east1.api.carto.com",
-    # access_token=st.secrets["token"],
-    access_token="eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdjkxemI4MHQiLCJqdGkiOiJiY2U1ZmVlNyJ9.5f1NB8nVOlZUuEY03UgLBCEGioDvyFRZJ7wwz65Qmo4",
+    access_token=st.secrets["token"],
     expiration=4155310800,
     open_browser=False
 )
@@ -21,16 +20,20 @@ view_state = pdk.ViewState(latitude=37.352, longitude=-121.575, zoom=8, pitch=0,
 view_state_california = pdk.ViewState(latitude=37.4, longitude=-121.5, zoom=5, pitch=0, bearing=0)
 
 tooltip_style = {
-                 "color": "rgba(255, 255, 255, 1)", #"white",
-                 "backgroundColor": "rgba(0, 0, 0, 1)", #1A212D", #"#297fb8",
+                 "color": "white",
+                 "backgroundColor": "#1A212D",
                  "border-radius": "4px",
-                 "padding": "2em",
+                 "padding": "1em",
                  "opacity": "1",
-                 "position": "relative",
+                 # "position": "fixed",
+                 # "top": 0,
+                 # "right": 0,
+                 # "left": 0,
                  "z-index": "999999",
                 }
-tooltip_wri_style = tooltip_style
+tooltip_wri_style = tooltip_style.copy()
 tooltip_wri_style["width"] = "450px"
+tooltip_wri_style["padding"] = "2em"
 
 # Fires
 fires_layer = pdk.Layer(
@@ -41,6 +44,7 @@ fires_layer = pdk.Layer(
     credentials=get_layer_credentials(carto_auth),
     geo_polygon="GEOM",
     spatial_data_column="GEOM",
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -122,6 +126,7 @@ tavg_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -137,7 +142,7 @@ tavg_layer = pdk.Layer(
 
 tooltip_tavg = {
     "html":
-        "<b>Average August Temperature (Celsius):</b> <br>{TAVG_AUG} <br> Understanding wildfires better and evaluating wildfire risk can help save people, property and nature by developing strategies aimed at wildfire prevention and mitigation. Not only that, but it would also be invaluable to business owners and especially in insurance industry by allowing insurance policies and pricing to backed up by real wildfire data analytics.",
+        "Average August Temperature (Celsius): <br><b>{TAVG_AUG}</b>",
     "style":
         tooltip_style
 }
@@ -149,6 +154,7 @@ tmax_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -164,7 +170,7 @@ tmax_layer = pdk.Layer(
 
 tooltip_tmax = {
     "html":
-        "<b>Maximum August Temperature (Celsius):</b> <br>{TMAX_AUG}",
+        "Maximum August Temperature (Celsius): <br><b>{TMAX_AUG}</b>",
     "style":
         tooltip_style
 }
@@ -180,6 +186,7 @@ wind_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -195,7 +202,7 @@ wind_layer = pdk.Layer(
 
 tooltip_w = {
     "html":
-        "<b>Average August Wind Speed (m/s):</b> <br>{WIND_AUG}",
+        "Average August Wind Speed (m/s): <br><b>{WIND_AUG}</b>",
     "style":
         tooltip_style
 }
@@ -209,6 +216,7 @@ prec_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -224,7 +232,7 @@ prec_layer = pdk.Layer(
 
 tooltip_p = {
     "html":
-        "<b>Average August Precipitation (inches):</b> <br>{PREC_AUG}",
+        "Average August Precipitation (inches): <br><b>{PREC_AUG}</b>",
     "style":
         tooltip_style
 }
@@ -238,6 +246,7 @@ vp_layer = pdk.Layer(
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
     geo_column=GeoColumnType.H3,
+    auto_highlight=True,
     pickable=True,
     stroked=True,
     filled=True,
@@ -253,7 +262,7 @@ vp_layer = pdk.Layer(
 
 tooltip_vp = {
     "html":
-        "<b>Average August Vapour Pressure (Pa):</b> <br>{VAPR_AUG}",
+        "Average August Vapour Pressure (Pa): <br><b>{VAPR_AUG}</b>",
     "style":
         tooltip_style
 }
