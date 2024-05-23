@@ -24,16 +24,12 @@ tooltip_style = {
                  "backgroundColor": "#1A212D",
                  "border-radius": "4px",
                  "padding": "1em",
-                 "opacity": "1",
-                 # "position": "fixed",
-                 # "top": 0,
-                 # "right": 0,
-                 # "left": 0,
-                 "z-index": "999999",
                 }
 tooltip_wri_style = tooltip_style.copy()
-tooltip_wri_style["width"] = "450px"
-tooltip_wri_style["padding"] = "2em"
+tooltip_wri_style["padding"] = "1em"
+tooltip_wri_style["transform"] = "translate(-370px, 0%)"
+tooltip_wri_style["max-width"] = "line-height: 1em"
+tooltip_wri_style["max-width"] = "370px"
 
 # Fires
 fires_layer = pdk.Layer(
@@ -84,6 +80,9 @@ q = 'SELECT YEAR_ AS YEAR, SUM(GIS_ACRES) AS GIS_ACRES FROM PARTNER_ACTION_ENGIN
 chart_data = session.sql(q).to_pandas()
 
 # WRI
+wri_exp = """ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
+MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
+MODE(EXPLANATION) as EXPLANATION"""
 wri_layer = pdk.Layer(
     "CartoLayer",
     data="""SELECT H3, CAST(SUBSTRING(REPLACE(WRI_KMEANS_5_CAT_JOINED, 'No risk', '0 No risk'), 1, 1) as int) AS WRI_CODE, WRI_KMEANS_5_CAT_JOINED, EXPLANATION FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",
@@ -101,9 +100,7 @@ wri_layer = pdk.Layer(
     opacity=0.2,
     get_line_color=[255, 255, 255, 150],
     line_width_min_pixels=1,
-    aggregation_exp=pdk.types.String("""ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
-                                     MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
-                                     MODE(EXPLANATION) as EXPLANATION"""),
+    aggregation_exp=pdk.types.String(wri_exp),
     # aggregation_res_level=8,
     # min_zoom=6
 )
@@ -118,7 +115,6 @@ tooltip_wri = {
 deck_wri = pdk.Deck(wri_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_wri)
 
 # Temperature
-
 tavg_layer = pdk.Layer(
     "CartoLayer",
     data="""SELECT H3, ROUND(TAVG_AUG, 2) AS TAVG_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",

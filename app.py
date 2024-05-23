@@ -4,7 +4,6 @@ from pydeck_layers import (deck_fires, deck_wri,
                         deck_wind, deck_prec,
                         deck_vp, chart_data)
 
-
 st.set_page_config(page_title="Using Snowflake Cortex to explain Fire Risk Index")
 st.header("Using Snowflake Cortex to explain Fire Risk Index", divider="rainbow")
 
@@ -33,7 +32,13 @@ To demonstrate it on a real example, let’s take a look at how data on Wildfire
 a simple tooltip:
 """
 st.markdown(cortex_description)
-st.pydeck_chart(deck_wri)
+
+col1, col2 = st.columns((1, 10))
+with col1:
+    st.markdown("")
+with col2:
+    st.pydeck_chart(deck_wri)
+
 st.caption('**Wildfire Risk Index** with explanation added by **Cortex COMPLETE** function')
 
 about_tooltip = """
@@ -156,7 +161,12 @@ One of the easiest and fastest way to do that is via a Carto map visualizations 
 """
 st.markdown(visualizing)
 
-st.pydeck_chart(deck_wri)
+col1, col2 = st.columns((1, 10))
+with col1:
+    st.markdown("")
+with col2:
+    st.pydeck_chart(deck_wri)
+
 st.caption('**Wildfire Risk Index** with explanation added by **Cortex COMPLETE** function.')
 
 st.divider()
