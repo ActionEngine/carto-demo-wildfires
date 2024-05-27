@@ -24,17 +24,20 @@ tooltip_style = {
                  "backgroundColor": "#1A212D",
                  "border-radius": "4px",
                  "padding": "1em",
+                 "opacity": "1",
+                 "z-index": "999999",
                 }
 tooltip_wri_style = tooltip_style.copy()
-tooltip_wri_style["padding"] = "1em"
-tooltip_wri_style["transform"] = "translate(-370px, 0%)"
-tooltip_wri_style["max-width"] = "line-height: 1em"
-tooltip_wri_style["max-width"] = "370px"
+tooltip_wri_style["padding"] = "10px"
+tooltip_wri_style["transform"] = "translate(0%, 56vh)"
+tooltip_wri_style["line-height"] = "1em"
+tooltip_wri_style["max-width"] = "100%"
+tooltip_wri_style["font-size"] = "15px"
 
 # Fires
 fires_layer = pdk.Layer(
     "CartoLayer",
-    data="""SELECT GEOM, ROUND(GIS_ACRES, 2) AS GIS_ACRES, FIRE_NAME, YEAR FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020""",
+    data="""SELECT GEOM, ROUND(GIS_ACRES, 2) AS ACRES, FIRE_NAME, YEAR FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020""",
     type_=MapType.QUERY,
     connection=pdk.types.String("sf_partner_conn"),
     credentials=get_layer_credentials(carto_auth),
@@ -53,7 +56,7 @@ fires_layer = pdk.Layer(
 
 tooltip_fires = {
     "html":
-        "Fire Name: <br><b>{FIRE_NAME}</b><br>Fire Area (Acres): <br><b>{GIS_ACRES}</b><br>Year: <br><b>{YEAR}</b>",
+        "Fire Name: <br><b>{FIRE_NAME}</b><br>Fire Area (Acres): <br><b>{ACRES}</b><br>Year: <br><b>{YEAR}</b>",
     "style":
         tooltip_style
 }
@@ -75,14 +78,11 @@ connection_parameters = {
 }
 
 session = Session.builder.configs(connection_parameters).create()
-q = 'SELECT YEAR_ AS YEAR, SUM(GIS_ACRES) AS GIS_ACRES FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020 GROUP BY YEAR_ ORDER BY YEAR_'
+q = 'SELECT YEAR_ AS YEAR, SUM(GIS_ACRES) AS ACRES FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.OTHER_WILDFIRES_2020 GROUP BY YEAR_ ORDER BY YEAR_'
 
 chart_data = session.sql(q).to_pandas()
 
 # WRI
-wri_exp = """ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
-MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
-MODE(EXPLANATION) as EXPLANATION"""
 wri_layer = pdk.Layer(
     "CartoLayer",
     data="""SELECT H3, CAST(SUBSTRING(REPLACE(WRI_KMEANS_5_CAT_JOINED, 'No risk', '0 No risk'), 1, 1) as int) AS WRI_CODE, WRI_KMEANS_5_CAT_JOINED, EXPLANATION FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",
@@ -100,21 +100,24 @@ wri_layer = pdk.Layer(
     opacity=0.2,
     get_line_color=[255, 255, 255, 150],
     line_width_min_pixels=1,
-    aggregation_exp=pdk.types.String(wri_exp),
+    aggregation_exp=pdk.types.String("""ROUND(AVG(WRI_CODE), 2) as WRI_CODE, 
+                                     MODE(WRI_KMEANS_5_CAT_JOINED) as WRI_KMEANS_5_CAT_JOINED,
+                                     MODE(EXPLANATION) as EXPLANATION"""),
     # aggregation_res_level=8,
     # min_zoom=6
 )
 
 tooltip_wri = {
     "html":
-        """<b>Wildfire Risk Index:</b> <br>{WRI_KMEANS_5_CAT_JOINED}<br>
-        <b>Explanation:</b> <br>{EXPLANATION}""",
+        """<span style="color: salmon; font-weight: bold; font-size: 16px;">Wildfire Risk Index:</span> <br>{WRI_KMEANS_5_CAT_JOINED}<br>
+        <span style="color: salmon; font-weight: bold; opacity: 0.7;">Explanation:</span> <br>{EXPLANATION}""",
     "style":
         tooltip_wri_style
 }
 deck_wri = pdk.Deck(wri_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_wri)
 
 # Temperature
+
 tavg_layer = pdk.Layer(
     "CartoLayer",
     data="""SELECT H3, ROUND(TAVG_AUG, 2) AS TAVG_AUG FROM PARTNER_ACTION_ENGINE_DB.WILDFIRE.WRI_EXPLANATION_FULL WHERE TAVG_AUG IS NOT NULL""",
@@ -253,7 +256,6 @@ vp_layer = pdk.Layer(
     get_line_color=[255, 255, 255, 150],
     line_width_min_pixels=1,
     aggregation_exp=pdk.types.String("ROUND(AVG(VAPR_AUG), 2) as VAPR_AUG"),
-    # aggregation_res_level=8,
 )
 
 tooltip_vp = {
@@ -263,3 +265,20 @@ tooltip_vp = {
         tooltip_style
 }
 deck_vp = pdk.Deck(vp_layer, map_style=map_style, initial_view_state=view_state, tooltip=tooltip_vp)
+
+listings_layer = pdk.Layer(
+    "CartoLayer",
+    data="SELECT * FROM  carto-demo-data.demo_tables.losangeles_airbnb_data",
+    type_=MapType.QUERY,
+    connection=pdk.types.String("carto_dw"),
+    credentials=get_layer_credentials(carto_auth),
+    get_fill_color=color_bins("price_num", [30, 100, 150, 300], "Sunset"),
+    point_radius_min_pixels=2.5,
+    opacity=0.4,
+    pickable=True,
+    stroked=False,
+)
+
+view_state_la = pdk.ViewState(latitude=34, longitude=-118.4, zoom=9, pitch=20, bearing=30)
+tooltip = {"html": "Price: <b>{price_num}</b>", "style": {"color": "white"}}
+deck_la = pdk.Deck(listings_layer, map_style=map_style, initial_view_state=view_state_la, tooltip=tooltip)
