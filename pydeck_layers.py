@@ -10,7 +10,7 @@ import streamlit as st
 carto_auth = CartoAuth(
     mode="oauth",
     api_base_url="https://gcp-us-east1.api.carto.com",
-    access_token='eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdjkxemI4MHQiLCJqdGkiOiJiY2U1ZmVlNyJ9.5f1NB8nVOlZUuEY03UgLBCEGioDvyFRZJ7wwz65Qmo4',
+    access_token=st.secrets["token"],
     expiration=4155310800,
     open_browser=False
 )
