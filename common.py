@@ -13,6 +13,10 @@ def set_page_container_style(padding_top=0, max_height=0, overflow="unset"):
     h2 {{
       padding-bottom: 0px;
     }}
+    [data-testid="stText"] {{
+      font-family: "Arial", sans-serif;    
+      margin-bottom: -1rem;
+    }}
   </style>
   ''',
         unsafe_allow_html=True,

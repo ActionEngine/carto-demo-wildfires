@@ -20,7 +20,7 @@ st.markdown("## Explaining Wildfire Risk in California with GenAI")
 # Tabs
 tab_app, tab_chart = st.tabs(["The App", "See LLM Prompt"])
 with tab_app:
-    st.markdown("Hover on an area in the map below to understand the wildfire risk")
+    st.text("Hover on an area in the map below to understand the wildfire risk")
     st.pydeck_chart(deck_wri)
 with tab_chart:
     cortex_description = """
