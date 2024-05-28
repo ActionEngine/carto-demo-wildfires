@@ -65,7 +65,7 @@ affecting over 5,000 acres. Recent studies ([1](https://www.pnas.org/doi/10.1073
 [2](https://www.epa.gov/climate-indicators/climate-change-indicators-wildfires#:~:text=Multiple%20studies%20have%20found%20that%20wildfire%20frequency%2C%20and%20burned%20area.&text=The%20wildfire%20season%20has%20lengthened%20and%20drier%20soils%20and%20vegetation.)) 
 confirm that wildfire risk is increasing in the United States, posing significant dangers to homeowners, farmers, and 
 the forest industry. This issue is also a subject of study among insurance analysts, environmentalists, and sustainability 
-professionals.<br><br> Carto has a recent [study](https://carto.com/blog/spatial-data-to-make-wildfire-risk-map) aimed 
+professionals.<br><br> CARTO has a recent [study](https://carto.com/blog/spatial-data-to-make-wildfire-risk-map) aimed 
 at gathering geospatial data to calculate wildfire risk groups across California where you can see risk in every H3 cell 
 across California rated from Low to Very High. In this exercise <span style='text-decoration:underline'>we want to go deeper into the explainability of this 
 model so that a wider audience</span> (i.e homeowners or insurance policy makers) can really understand what’s behind this. 
