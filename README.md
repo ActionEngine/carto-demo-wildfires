@@ -11,7 +11,6 @@ Avaliable here: https://carto-demo-wildfires.streamlit.app/
 - Carto account connection with Snowflake account
 
 ### Running
-1. run oAuth.py and login into Carto in browser (this will create a token_oauth.json file)
-2. pip install requirements.txt
-3. streamlit run app.py
+1. pip install requirements.txt
+3. streamlit run Explaining_Wildfire_Risk_in_California_with_GenAI.py
 4. open localhost:8501
