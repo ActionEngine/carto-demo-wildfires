@@ -6,11 +6,15 @@ Avaliable here: https://carto-demo-wildfires.streamlit.app/
 ## How to run locally
 ### Prerequisites:
 - Python 3.11+
-- Carto account
-- Snowflake account with needed data to visualize
-- Carto account connection with Snowflake account
+- CARTO account
+- Snowflake account with required data to visualize
+- Connect CARTO account with Snowflake account using [this guide](https://docs.carto.com/carto-user-manual/connections/snowflake)
 
-### Running
-1. pip install requirements.txt
-3. streamlit run Explaining_Wildfire_Risk_in_California_with_GenAI.py
-4. open localhost:8501
+### Running locally
+(Optional) Create a python container for this app
+
+1. Navigate to project folder
+2. Open `pydeck_layers.py` and replace `st.secrets["token"]` with your [CARTO API Token](https://docs.carto.com/carto-user-manual/developers/managing-credentials/api-access-tokens)
+3. Run `pip install -r requirements.txt`
+5. Run `streamlit run Explaining_Wildfire_Risk_in_California_with_GenAI.py`
+6. App is available at http://localhost:8501
